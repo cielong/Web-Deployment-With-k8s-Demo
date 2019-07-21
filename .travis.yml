@@ -20,3 +20,17 @@ after_success:
     - docker push cielong/multi-container-nginx 
     - docker push cielong/multi-container-server
     - docker push cielong/multi-container-worker
+
+deploy:
+    provider: elasticbeanstalk
+    region: "us-west-1"
+    app: "multi-container"
+    env: "MultiContainer-env"
+    bucket_name: "elasticbeanstalk-us-west-1-527775763000"
+    bucket_path: "multi-container"
+    on:
+        branch: master
+    access_key_id: 
+        secure: "$AWS_ACCESS_KEY"
+    secret_access_key:
+        secure: "$AWS_SECRET_KEY"
