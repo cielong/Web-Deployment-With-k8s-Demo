@@ -1,2 +1,8 @@
+# MacOS
+.DS_Store
+
 # Emacs backup files
 /.~
+
+# Local development environment setup
+skaffold.yaml
