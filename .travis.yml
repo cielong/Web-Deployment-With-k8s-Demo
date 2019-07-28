@@ -1,9 +1,33 @@
 sudo: required
 services:
   - docker
+env:
+  global:
+    # calulate current sha of git commit
+    - GIT_SHA=$(git rev-parse HEAD)
+    # prevent google cloud CLT from prompting any user input
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
+  # decrypt account json files
   - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d
+  # install google cloud CLI and config with project name, compute zone and cluster
   - curl https://sdk.cloud.google.com | bash > /dev/null;
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project web-deployment-with-k8s-demo
+  - gcloud config set compute/zone us-west1-a
+  - gcloud container clusters get-credentials web-deployment-with-k8s-demo
+  # build docker files
+  - docker build -t cielong/multi-container-client-test -f ./client/Dockerfile.dev ./client
+  # log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+script:
+  - docker run -e CI=true cielong/multi-container-client-test npm run test
+
+deploy:
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master
